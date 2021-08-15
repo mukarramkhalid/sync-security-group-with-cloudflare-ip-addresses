@@ -1,9 +1,7 @@
 # Specify security group id and ports below.
-# Each cloudflare IP address will be added for each port from-to combincation.
-# So number of rules created will be equal to number of items in the ports list.
-# Also, any other rules will be deleted from the specified security group.
-# At the end of this script, only cloudflare IP addresses with the given combination
-# of ports will remain in this security group
+# Each cloudflare IP address will be added for each port from-to combination.
+# Caution: Any extra rules will be deleted from the specified security group.
+# Only cloudflare IP addresses with the given combination of ports will remain
 
 security_group_id = "sg-09023ab02701ccabd"
 ports = [
@@ -21,7 +19,7 @@ import urllib3
 def lambda_handler(event, context):
     security_group = SecurityGroup(security_group_id, ports)
     security_group.sync_with_cloudflare_ipaddresses()
-    return {"statusCode": 200, "body": None}
+    return {"statusCode": 200, "body": "Success"}
 
 
 class SecurityGroup:
@@ -128,7 +126,7 @@ class SecurityGroup:
         return
 
     def delete_ingress_rules_that_do_not_exist_anymore(self, ingress_rules):
-        # Let's be honest, AWS API for security groups is shit.
+        # Let's be honest, AWS API for security groups sucks.
         # The ingress and egress rules objects have a poor programmatic structure.
         # And the SDK doesn't help either
         # Iterating rules object
