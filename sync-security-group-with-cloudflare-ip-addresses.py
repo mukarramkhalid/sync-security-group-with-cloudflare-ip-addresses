@@ -13,6 +13,7 @@ ports = [
 
 # No need to change anything below this line.
 import json
+import copy
 import boto3
 import urllib3
 
@@ -39,6 +40,10 @@ class SecurityGroup:
     ports = []
 
     def __init__(self, security_group_id, ports):
+        self.cloudflare_ip_addresses_v4 = []
+        self.cloudflare_ip_addresses_v6 = []
+        self.ipv4_rule_map = []
+        self.ipv6_rule_map = []
         ec2 = boto3.resource("ec2")
         self.security_group = ec2.SecurityGroup(security_group_id)
         self.ports = ports
@@ -78,8 +83,6 @@ class SecurityGroup:
     def process_inbound_rules(self):
         ingress_rules = self.security_group.ip_permissions
         self.delete_ingress_rules_that_do_not_exist_anymore(ingress_rules)
-        print(json.dumps(self.ipv4_rule_map))
-        print(json.dumps(self.ipv6_rule_map))
         self.insert_remaining_ingress_rules()
         return
 
@@ -129,39 +132,24 @@ class SecurityGroup:
         # The ingress and egress rules objects have a poor programmatic structure.
         # And the SDK doesn't help either
         # Iterating rules object
-        for index, ingress_rule in enumerate(ingress_rules):
+        temp_list = copy.deepcopy(ingress_rules)
+        for ingress_rule in temp_list:
             if not self.port_combination_exists(ingress_rule["FromPort"], ingress_rule["ToPort"]):
                 self.remove_ingress_rule(ingress_rule)
-                ingress_rules.pop(index)
+                ingress_rules.remove(ingress_rule)
                 continue
             # Iterating IPv4 addresses
             for ipv4 in ingress_rule["IpRanges"]:
                 if ipv4["CidrIp"] not in self.cloudflare_ip_addresses_v4:
                     self.remove_ingress_rule_for_ipv4(ingress_rule, ipv4)
                 else: # Our rule already exists in the security group
-                    self.remove_ipv4_rule_map_entry(ipv4["CidrIp"], ingress_rule["FromPort"], ingress_rule["ToPort"])
+                    self.ipv4_rule_map.remove({"cidr": ipv4["CidrIp"], "from_port": ingress_rule["FromPort"], "to_port": ingress_rule["ToPort"]})
             # Iterating IPv6 addresses
             for ipv6 in ingress_rule["Ipv6Ranges"]:
                 if ipv6["CidrIpv6"] not in self.cloudflare_ip_addresses_v6:
                     self.remove_ingress_rule_for_ipv6(ingress_rule, ipv6)
                 else: # Our rule already exists in the security group
-                    self.remove_ipv6_rule_map_entry(ipv6["CidrIpv6"], ingress_rule["FromPort"], ingress_rule["ToPort"])
-        return
-
-    def remove_ipv4_rule_map_entry(self, cidr, from_port, to_port):
-        for index, rule in enumerate(self.ipv4_rule_map):
-            if rule["cidr"] == cidr and rule["from_port"] == from_port and rule["to_port"] == to_port:
-                self.ipv4_rule_map.pop(index)
-                # return as soon as the rule is found because there would be only one occurence in rule map
-                return
-        return
-
-    def remove_ipv6_rule_map_entry(self, cidr, from_port, to_port):
-        for index, rule in enumerate(self.ipv6_rule_map):
-            if rule["cidr"] == cidr and rule["from_port"] == from_port and rule["to_port"] == to_port:
-                self.ipv6_rule_map.pop(index)
-                # return as soon as the rule is found because there would be only one occurence in rule map
-                return
+                    self.ipv6_rule_map.remove({"cidr": ipv6["CidrIpv6"], "from_port": ingress_rule["FromPort"], "to_port": ingress_rule["ToPort"]})
         return
 
     def insert_remaining_ingress_rules(self):
