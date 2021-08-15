@@ -1,5 +1,3 @@
-## Lambda function to sync AWS Security Group with Cloudflare IP addresses
-
 ### What is it?
 This Lambda function allows us to keep an AWS Security Group up-to-date with Cloudflare IP addresses for the given ports.
 
