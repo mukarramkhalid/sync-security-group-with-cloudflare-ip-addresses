@@ -3,7 +3,7 @@
 # Caution: Any extra rules will be deleted from the specified security group.
 # Only cloudflare IP addresses with the given combination of ports will remain
 
-security_group_id = "sg-09023ab02701ccabd"
+security_group_id = "sg-xxxxxxxxxxxxxxxxx"
 ports = [
     {"from": 80, "to": 80},
     {"from": 443, "to": 443},
