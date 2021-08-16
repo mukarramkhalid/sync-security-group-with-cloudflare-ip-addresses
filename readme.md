@@ -8,6 +8,8 @@ There are other scripts and Lambda functions available online but there are quit
 - It does not remove old rules and IP addresses which do not exist anymore as described in [this issue](https://github.com/johnmccuk/cloudflare-ip-security-group-update/issues/3).
 - Has some other [issues](https://github.com/johnmccuk/cloudflare-ip-security-group-update/issues/2).
 
+Another script [sys0dm1n/lambda-cloudflare-ip-security-group-update](https://github.com/sys0dm1n/lambda-cloudflare-ip-security-group-update) has the similar problems.
+
 My use case is very simple. I needed a Lambda function that would sync an AWS Security Group with Cloudflare IP addresses and keep it up-to-date.
 
 ### Is there something I should know?
