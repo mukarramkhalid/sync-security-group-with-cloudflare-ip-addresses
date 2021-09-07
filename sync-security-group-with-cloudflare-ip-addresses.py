@@ -10,7 +10,7 @@ ports = [
 ]
 
 # No need to change anything below this line.
-# But feel free to return any resonse.
+# But feel free to return any response.
 import json
 import copy
 import boto3
