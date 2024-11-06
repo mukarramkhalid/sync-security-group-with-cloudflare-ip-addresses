@@ -56,9 +56,15 @@ class SecurityGroup:
     def grab_cloudflare_ipaddresses(self):
         http = urllib3.PoolManager()
         response = http.request("GET", "https://www.cloudflare.com/ips-v4")
+        if response.status != 200:
+            raise Exception(f"Failed to fetch IPv4 addresses. HTTP Status Code: {response.status}")
+            
         self.cloudflare_ip_addresses_v4 = response.data.decode("utf-8").split("\n")
         http = urllib3.PoolManager()
         response = http.request("GET", "https://www.cloudflare.com/ips-v6")
+        if response.status != 200:
+            raise Exception(f"Failed to fetch IPv6 addresses. HTTP Status Code: {response.status}")
+            
         self.cloudflare_ip_addresses_v6 = response.data.decode("utf-8").split("\n")
         return
     
