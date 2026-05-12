@@ -55,17 +55,22 @@ class SecurityGroup:
 
     def grab_cloudflare_ipaddresses(self):
         http = urllib3.PoolManager()
-        response = http.request("GET", "https://www.cloudflare.com/ips-v4")
+    
+        response = http.request(
+            "GET",
+            "https://api.cloudflare.com/client/v4/ips"
+        )
+    
         if response.status != 200:
-            raise Exception(f"Failed to fetch IPv4 addresses. HTTP Status Code: {response.status}")
-            
-        self.cloudflare_ip_addresses_v4 = response.data.decode("utf-8").split("\n")
-        http = urllib3.PoolManager()
-        response = http.request("GET", "https://www.cloudflare.com/ips-v6")
-        if response.status != 200:
-            raise Exception(f"Failed to fetch IPv6 addresses. HTTP Status Code: {response.status}")
-            
-        self.cloudflare_ip_addresses_v6 = response.data.decode("utf-8").split("\n")
+            raise Exception(
+                f"Cloudflare API request failed with status {response.status}"
+            )
+    
+        data = json.loads(response.data.decode("utf-8"))
+    
+        self.cloudflare_ip_addresses_v4 = data["result"]["ipv4_cidrs"]
+        self.cloudflare_ip_addresses_v6 = data["result"]["ipv6_cidrs"]
+    
         return
     
     def make_rule_maps(self):
